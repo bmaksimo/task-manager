@@ -1,13 +1,24 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, useParams } from 'react-router-dom';
 import AddTask from './AddTask';
+import TaskList from './TaskList';
 import './App.css';
 
 function Tasks() {
   return (
     <div>
       <h1>Tasks</h1>
-      <p>Your tasks will be displayed here.</p>
+      <TaskList />
+    </div>
+  );
+}
+
+function TaskDetail() {
+  const { id } = useParams<{ id: string }>();
+  return (
+    <div>
+      <h1>Task Details</h1>
+      <p>Viewing task with ID: {id}</p>
     </div>
   );
 }
@@ -42,6 +53,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Tasks />} />
             <Route path="/add" element={<AddTask />} />
+            <Route path="/task/:id" element={<TaskDetail />} />
           </Routes>
         </main>
       </div>
