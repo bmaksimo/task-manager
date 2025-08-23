@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useParams } from 'react-router-dom';
 import AddTask from './AddTask';
 import TaskList from './TaskList';
+import TaskForm from './TaskForm';
 import './App.css';
 
 function Tasks() {
@@ -52,8 +53,9 @@ function App() {
         }}>
           <Routes>
             <Route path="/" element={<Tasks />} />
-            <Route path="/add" element={<AddTask />} />
+            <Route path="/add" element={<TaskForm />} />
             <Route path="/task/:id" element={<TaskDetail />} />
+            <Route path="/task/:id/edit" element={<TaskForm />} />
           </Routes>
         </main>
       </div>

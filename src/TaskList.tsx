@@ -105,6 +105,14 @@ const TaskList: React.FC = () => {
                                     </Button>
                                     <Button
                                         variant="outlined"
+                                        size="small"
+                                        onClick={() => navigate(`/task/${task.id}/edit`)}
+                                        sx={{ mr: 1 }}
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
                                         color="error"
                                         size="small"
                                         onClick={() => handleDelete(task.id)}
