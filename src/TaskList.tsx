@@ -12,19 +12,27 @@ import {
     Paper,
     CircularProgress,
     Alert,
+    TextField,
+    Box,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
 } from "@mui/material";
+import { Task } from "./types/Task";
 
-type Task = {
+interface TaskWithUserId extends Task {
     userId: number;
-    id: number;
-    title: string;
-    completed: boolean;
-};
+}
 
 const TaskList: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>([]);
+    const [tasks, setTasks] = useState<TaskWithUserId[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchFilter, setSearchFilter] = useState<string>("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+    const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -37,8 +45,14 @@ const TaskList: React.FC = () => {
                 );
                 setTasks(response.data);
                 console.log("Tasks fetched: " + response.data);
-            } catch (err) {
-                setError("Failed to fetch tasks. Please try again later.");
+            } catch (err: any) {
+                if (err.response?.status >= 500) {
+                    setError("Server error. Please try again later.");
+                } else if (err.code === 'NETWORK_ERROR' || !err.response) {
+                    setError("Network error. Please check your internet connection and try again.");
+                } else {
+                    setError("Failed to fetch tasks. Please try again later.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -51,22 +65,44 @@ const TaskList: React.FC = () => {
         navigate(`/task/${id}`);
     }
 
-    async function handleDelete(id: number) {
+    const handleDeleteClick = (id: number) => {
+        setTaskToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (taskToDelete === null) return;
+
         try {
             setLoading(true);
             setError(null);
             await axios.delete(
-                `https://jsonplaceholder.typicode.com/todos/${id}`
+                `https://jsonplaceholder.typicode.com/todos/${taskToDelete}`
             );
-            setTasks(tasks.filter(task => task.id !== id));
-            console.log("Task deleted:", id);
-        } catch (err) {
-            setError("Failed to delete task. Please try again.");
-            console.log("Error whith task delete id: ", id);
+            setTasks(tasks.filter(task => task.id !== taskToDelete));
+            console.log("Task deleted:", taskToDelete);
+        } catch (err: any) {
+            if (err.response?.status === 404) {
+                setError("Task not found. It may have already been deleted.");
+            } else if (err.response?.status >= 500) {
+                setError("Server error. Failed to delete task. Please try again later.");
+            } else if (err.code === 'NETWORK_ERROR' || !err.response) {
+                setError("Network error. Failed to delete task. Please check your internet connection and try again.");
+            } else {
+                setError("Failed to delete task. Please try again.");
+            }
+            console.log("Error with task delete id: ", taskToDelete);
         } finally {
             setLoading(false);
+            setDeleteDialogOpen(false);
+            setTaskToDelete(null);
         }
-    }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
+        setTaskToDelete(null);
+    };
 
     if (loading) {
         return <CircularProgress />;
@@ -76,8 +112,21 @@ const TaskList: React.FC = () => {
         return <Alert severity="error">{error}</Alert>;
     }
 
+    const filteredTasks = tasks.filter(task =>
+        task.title.toLowerCase().includes(searchFilter.toLowerCase())
+    );
+
     return (
         <Paper sx={{ padding: 2, fontFamily: 'Roboto, sans-serif' }}>
+            <Box sx={{ mb: 2 }}>
+                <TextField
+                    label="Search tasks by title"
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                />
+            </Box>
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -89,7 +138,7 @@ const TaskList: React.FC = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {tasks.map((task) => (
+                        {filteredTasks.map((task) => (
                             <TableRow key={task.id}>
                                 <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{task.id}</TableCell>
                                 <TableCell sx={{ borderBottom: '1px solid #e0e0e0' }}>{task.title}</TableCell>
@@ -115,7 +164,7 @@ const TaskList: React.FC = () => {
                                         variant="outlined"
                                         color="error"
                                         size="small"
-                                        onClick={() => handleDelete(task.id)}
+                                        onClick={() => handleDeleteClick(task.id)}
                                     >
                                         Delete
                                     </Button>
@@ -125,6 +174,40 @@ const TaskList: React.FC = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteCancel}
+            >
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this task?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={handleDeleteCancel}
+                        sx={{
+                            background: 'linear-gradient(315deg, #2a2a72, #009ffd)',
+                            color: 'white',
+                            '&:hover': {
+                                background: 'linear-gradient(315deg, #1e1e5c, #007acc)',
+                            },
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleDeleteConfirm}
+                        color="error"
+                        variant="contained"
+                        disabled={loading}
+                    >
+                        {loading ? <CircularProgress size={20} /> : 'Delete'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Paper>
     );
 };

@@ -18,9 +18,22 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "jest",
+      "node",
+      "react",
+      "react-dom",
+      "react-router-dom"
+    ]
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "node_modules/@types/babel__*"
   ]
 }

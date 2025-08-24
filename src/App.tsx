@@ -15,16 +15,6 @@ function Tasks() {
   );
 }
 
-/* function TaskDetail() {
-  const { id } = useParams<{ id: string }>();
-  return (
-    <div>
-      <h1>Task Details</h1>
-      <p>Viewing task with ID: {id}</p>
-    </div>
-  );
-} */
-
 function App() {
   return (
     <BrowserRouter>

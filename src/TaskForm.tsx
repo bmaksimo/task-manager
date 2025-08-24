@@ -14,13 +14,11 @@ import {
     Typography,
     CircularProgress,
 } from "@mui/material";
+import { Task } from "./types/Task";
 
-type Task = {
+interface TaskWithUserId extends Task {
     userId: number;
-    id: number;
-    title: string;
-    completed: boolean;
-};
+}
 
 const TaskForm: React.FC = () => {
     const [title, setTitle] = useState<string>("");
@@ -43,14 +41,35 @@ const TaskForm: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
+            
+            // Validate ID
+            if (!id || isNaN(Number(id))) {
+                setError("Invalid task ID. Please check the URL and try again.");
+                return;
+            }
+            
             const response = await axios.get(
                 `https://jsonplaceholder.typicode.com/todos/${id}`
             );
-            const task: Task = response.data;
+            
+            if (!response.data || !response.data.id) {
+                setError("Task not found. The task may have been deleted or doesn't exist.");
+                return;
+            }
+            
+            const task: TaskWithUserId = response.data;
             setTitle(task.title);
             setCompleted(task.completed);
-        } catch (err) {
-            setError("Failed to fetch task. Please try again later.");
+        } catch (err: any) {
+            if (err.response?.status === 404) {
+                setError("Task not found. The task may have been deleted or doesn't exist.");
+            } else if (err.response?.status >= 500) {
+                setError("Server error. Please try again later.");
+            } else if (err.code === 'NETWORK_ERROR' || !err.response) {
+                setError("Network error. Please check your internet connection and try again.");
+            } else {
+                setError("Failed to fetch task. Please try again later.");
+            }
         } finally {
             setLoading(false);
         }
@@ -79,8 +98,14 @@ const TaskForm: React.FC = () => {
                 taskData
             );
             navigate("/");
-        } catch (err) {
-            setError(`Failed to edit task. Please try again.`);
+        } catch (err: any) {
+            if (err.response?.status >= 500) {
+                setError(`Server error. Failed to ${isEditMode ? 'update' : 'create'} task. Please try again later.`);
+            } else if (err.code === 'NETWORK_ERROR' || !err.response) {
+                setError(`Network error. Failed to ${isEditMode ? 'update' : 'create'} task. Please check your internet connection and try again.`);
+            } else {
+                setError(`Failed to ${isEditMode ? 'update' : 'create'} task. Please try again.`);
+            }
         } finally {
             setLoading(false);
         }
