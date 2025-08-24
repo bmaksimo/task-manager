@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, NavLink, useParams } from 'react-router-d
 import AddTask from './AddTask';
 import TaskList from './TaskList';
 import TaskForm from './TaskForm';
+import TaskView from './TaskView';
 import './App.css';
 
 function Tasks() {
@@ -14,7 +15,7 @@ function Tasks() {
   );
 }
 
-function TaskDetail() {
+/* function TaskDetail() {
   const { id } = useParams<{ id: string }>();
   return (
     <div>
@@ -22,7 +23,7 @@ function TaskDetail() {
       <p>Viewing task with ID: {id}</p>
     </div>
   );
-}
+} */
 
 function App() {
   return (
@@ -45,16 +46,17 @@ function App() {
             </li>
           </ul>
         </nav>
-        <main style={{ 
-          marginLeft: '200px', 
-          marginTop: '64px', 
+        <main style={{
+          marginLeft: '200px',
+          marginTop: '64px',
           padding: '20px',
           minHeight: 'calc(100vh - 64px)'
         }}>
           <Routes>
             <Route path="/" element={<Tasks />} />
             <Route path="/add" element={<TaskForm />} />
-            <Route path="/task/:id" element={<TaskDetail />} />
+            {/* <Route path="/task/:id" element={<TaskDetail />} /> */}
+            <Route path="/task/:id" element={<TaskView />} />
             <Route path="/task/:id/edit" element={<TaskForm />} />
           </Routes>
         </main>

@@ -78,7 +78,6 @@ const TaskForm: React.FC = () => {
                 `https://jsonplaceholder.typicode.com/todos`,
                 taskData
             );
-
             navigate("/");
         } catch (err) {
             setError(`Failed to edit task. Please try again.`);
