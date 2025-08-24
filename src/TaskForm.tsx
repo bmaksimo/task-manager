@@ -41,34 +41,40 @@ const TaskForm: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            
+
             // Validate ID
             if (!id || isNaN(Number(id))) {
                 setError("Invalid task ID. Please check the URL and try again.");
+                console.error("Invalid task ID:", id);
                 return;
             }
-            
+
             const response = await axios.get(
                 `https://jsonplaceholder.typicode.com/todos/${id}`
             );
-            
+
             if (!response.data || !response.data.id) {
                 setError("Task not found. The task may have been deleted or doesn't exist.");
+                console.error("Task not found:", response.data);
                 return;
             }
-            
+
             const task: TaskWithUserId = response.data;
             setTitle(task.title);
             setCompleted(task.completed);
         } catch (err: any) {
             if (err.response?.status === 404) {
                 setError("Task not found. The task may have been deleted or doesn't exist.");
+                console.error("Task not found (404):", err);
             } else if (err.response?.status >= 500) {
                 setError("Server error. Please try again later.");
+                console.error("Server error (500+):", err);
             } else if (err.code === 'NETWORK_ERROR' || !err.response) {
                 setError("Network error. Please check your internet connection and try again.");
+                console.error("Network error:", err);
             } else {
                 setError("Failed to fetch task. Please try again later.");
+                console.error("Failed to fetch task:", err);
             }
         } finally {
             setLoading(false);
